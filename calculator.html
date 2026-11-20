@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator Coquette</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink-1: #ffd6e7;
+    --pink-2: #ffb3d1;
+    --pink-3: #ff8fbb;
+    --pink-deep: #e8638f;
+    --white: #fffafc;
+    --text: #8a3b5c;
+    --gold-1: #fff0a8;
+    --gold-2: #f6c945;
+    --gold-3: #d9a21b;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 12px;
+    font-family: 'Quicksand', system-ui, sans-serif;
+    background-color: #ffe9f2;
+    background-image:
+      radial-gradient(circle, #ffc9de 2px, transparent 2.5px),
+      radial-gradient(circle, #fff 2px, transparent 2.5px);
+    background-size: 28px 28px;
+    background-position: 0 0, 14px 14px;
+  }
+
+  /* ===== BODY KALKULATOR ===== */
+  .calculator {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    padding: 92px 20px 24px;
+    border-radius: 38px;
+    background: linear-gradient(160deg, #fff5f9 0%, #ffe3ee 100%);
+    border: 3px solid var(--white);
+    box-shadow:
+      0 0 0 3px var(--pink-2),
+      0 20px 40px rgba(232, 99, 143, 0.35),
+      inset 0 2px 10px rgba(255, 255, 255, 0.9);
+  }
+
+  /* ===== PITA ===== */
+  .ribbon {
+    position: absolute;
+    top: 26px;
+    left: -10px;
+    right: -10px;
+    height: 36px;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #ffc2da 0%, var(--pink-3) 50%, #ff7fb0 100%);
+    box-shadow: 0 5px 10px rgba(232, 99, 143, 0.35),
+                inset 0 2px 0 rgba(255, 255, 255, 0.6);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .ribbon::before { /* jahitan */
+    content: "";
+    position: absolute;
+    inset: 6px 8px;
+    border-top: 2px dashed rgba(255, 255, 255, 0.8);
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+  }
+  /* ujung pita yang "melipat" ke belakang di sisi kiri-kanan */
+  .ribbon::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 10px;
+    height: 8px;
+    background: #d9568a;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    box-shadow: calc(100% + 0px) 0 0 transparent;
+  }
+  .ribbon-fold-r {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 10px;
+    height: 8px;
+    background: #d9568a;
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+
+  .bow {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 118px;
+    height: 70px;
+    z-index: 4;
+    filter: drop-shadow(0 4px 4px rgba(232, 99, 143, 0.4));
+    pointer-events: none;
+  }
+
+  /* ===== DISPLAY ===== */
+  .display {
+    position: relative;
+    z-index: 1;
+    min-height: 104px;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    border-radius: 24px;
+    background: var(--white);
+    border: 2.5px dotted var(--pink-2);
+    box-shadow: inset 0 3px 8px rgba(255, 143, 187, 0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    overflow: hidden;
+    text-align: right;
+  }
+  .display .expr {
+    font-size: 0.95rem;
+    min-height: 1.2em;
+    color: var(--pink-3);
+    font-weight: 700;
+    word-break: break-all;
+  }
+  .display .result {
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+    max-width: 100%;
+    white-space: nowrap;
+  }
+  .display::before {
+    content: "♡";
+    position: absolute;
+    top: 8px;
+    left: 14px;
+    color: var(--pink-2);
+    font-size: 0.9rem;
+  }
+
+  /* ===== TOMBOL ===== */
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .key {
+    aspect-ratio: 1 / 1;
+    border: none;
+    border-radius: 50%;
+    font-family: inherit;
+    font-size: 1.35rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    user-select: none;
+  }
+
+  .key.white {
+    background: radial-gradient(circle at 30% 25%, #ffffff, #ffeef5 80%);
+    box-shadow: 0 5px 0 #ffc4da, 0 8px 12px rgba(232, 99, 143, 0.25),
+                inset 0 2px 3px #fff;
+  }
+  .key.pink {
+    background: radial-gradient(circle at 30% 25%, #ffd9e9, var(--pink-2) 85%);
+    box-shadow: 0 5px 0 #f08cb4, 0 8px 12px rgba(232, 99, 143, 0.3),
+                inset 0 2px 3px rgba(255, 255, 255, 0.8);
+  }
+  .key.op {
+    color: #fff;
+    background: radial-gradient(circle at 30% 25%, #ffa9cb, var(--pink-deep) 90%);
+    box-shadow: 0 5px 0 #b94672, 0 8px 12px rgba(232, 99, 143, 0.35),
+                inset 0 2px 3px rgba(255, 255, 255, 0.5);
+    text-shadow: 0 1px 2px rgba(150, 40, 90, 0.4);
+  }
+  .key.gold {
+    color: #fff;
+    font-size: 1.6rem;
+    background: radial-gradient(circle at 30% 25%, var(--gold-1), var(--gold-2) 60%, var(--gold-3) 100%);
+    box-shadow: 0 5px 0 #a87b0f, 0 8px 14px rgba(217, 162, 27, 0.5),
+                inset 0 2px 3px rgba(255, 255, 255, 0.8);
+    text-shadow: 0 1px 2px rgba(140, 95, 0, 0.5);
+  }
+
+  .key:hover { filter: brightness(1.05); }
+  .key:active, .key.pressed {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15), 0 2px 4px rgba(232, 99, 143, 0.3);
+  }
+
+  /* ===== EFEK SPARK PINK ===== */
+  .spark {
+    position: fixed;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 9999;
+    will-change: transform, opacity;
+  }
+  .spark.star {
+    background: radial-gradient(circle, #fff 0%, #ff8fbb 70%);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  }
+  .spark.dot {
+    border-radius: 50%;
+    box-shadow: 0 0 8px 2px rgba(255, 143, 187, 0.8);
+  }
+  .spark.ring {
+    border-radius: 50%;
+    border: 3px solid rgba(255, 143, 187, 0.9);
+    box-shadow: 0 0 12px rgba(255, 143, 187, 0.8);
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 18px;
+    font-family: 'Pacifico', cursive;
+    color: var(--pink-3);
+    font-size: 0.95rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="calculator">
+  <!-- Pita yang mengikat bagian atas, kiri ke kanan -->
+  <div class="ribbon"><span class="ribbon-fold-r"></span></div>
+  <svg class="bow" viewBox="0 0 120 70" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="bowG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffc2da"/>
+        <stop offset="1" stop-color="#ff7fb0"/>
+      </linearGradient>
+      <linearGradient id="bowD" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ff8fbb"/>
+        <stop offset="1" stop-color="#e8638f"/>
+      </linearGradient>
+    </defs>
+    <!-- ekor pita -->
+    <path d="M54 38 L38 67 L52 61 L58 69 L63 40 Z" fill="url(#bowD)"/>
+    <path d="M66 38 L82 67 L68 61 L62 69 L57 40 Z" fill="url(#bowD)"/>
+    <!-- loop kiri & kanan -->
+    <path d="M60 32 C 40 2, 4 6, 8 31 C 11 56, 42 52, 60 37 Z" fill="url(#bowG)" stroke="#fff" stroke-width="1.5"/>
+    <path d="M60 32 C 80 2, 116 6, 112 31 C 109 56, 78 52, 60 37 Z" fill="url(#bowG)" stroke="#fff" stroke-width="1.5"/>
+    <path d="M56 32 C 40 16, 22 16, 20 30" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+    <path d="M64 32 C 80 16, 98 16, 100 30" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/>
+    <!-- simpul -->
+    <rect x="50" y="23" width="20" height="20" rx="9" fill="url(#bowD)" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="60" cy="33" r="2" fill="#fff" fill-opacity=".8"/>
+  </svg>
+
+  <div class="display">
+    <div class="expr" id="expr"></div>
+    <div class="result" id="result">0</div>
+  </div>
+
+  <div class="keys">
+    <button class="key pink"  data-action="clear">C</button>
+    <button class="key pink"  data-action="back">⌫</button>
+    <button class="key pink"  data-action="percent">%</button>
+    <button class="key op"    data-action="op" data-op="÷">÷</button>
+
+    <button class="key white" data-action="digit" data-d="7">7</button>
+    <button class="key white" data-action="digit" data-d="8">8</button>
+    <button class="key white" data-action="digit" data-d="9">9</button>
+    <button class="key op"    data-action="op" data-op="×">×</button>
+
+    <button class="key white" data-action="digit" data-d="4">4</button>
+    <button class="key white" data-action="digit" data-d="5">5</button>
+    <button class="key white" data-action="digit" data-d="6">6</button>
+    <button class="key op"    data-action="op" data-op="−">−</button>
+
+    <button class="key white" data-action="digit" data-d="1">1</button>
+    <button class="key white" data-action="digit" data-d="2">2</button>
+    <button class="key white" data-action="digit" data-d="3">3</button>
+    <button class="key op"    data-action="op" data-op="+">+</button>
+
+    <button class="key pink"  data-action="sign">±</button>
+    <button class="key white" data-action="digit" data-d="0">0</button>
+    <button class="key white" data-action="dot">.</button>
+    <button class="key gold"  data-action="equals">=</button>
+  </div>
+
+  <div class="footer">made with love ♡</div>
+</div>
+
+<script>
+  const resultEl = document.getElementById('result');
+  const exprEl = document.getElementById('expr');
+
+  let current = '0';      // angka yang sedang diketik
+  let previous = null;    // angka sebelumnya
+  let operator = null;    // operator aktif
+  let justEvaluated = false;
+  let error = false;
+
+  const clean = (n) => parseFloat(Number(n).toPrecision(12));
+
+  function format(str) {
+    if (error) return str;
+    if (str === '-' || str === '') return str;
+    const [intPart, decPart] = str.split('.');
+    const sign = intPart.startsWith('-') ? '-' : '';
+    const digits = intPart.replace('-', '');
+    const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return sign + grouped + (decPart !== undefined ? ',' + decPart : '');
+  }
+
+  function update() {
+    const text = format(current);
+    resultEl.textContent = text;
+    // kecilkan font kalau angka panjang supaya hasil tidak kepotong
+    const len = text.length;
+    resultEl.style.fontSize = len > 14 ? '1.4rem' : len > 11 ? '1.8rem' : len > 8 ? '2.2rem' : '2.6rem';
+    exprEl.textContent = operator && previous !== null
+      ? `${format(String(previous))} ${operator}${justEvaluated ? '' : ''}`
+      : '';
+  }
+
+  function resetError() {
+    if (error) { clear(); }
+  }
+
+  function inputDigit(d) {
+    resetError();
+    if (justEvaluated) { current = '0'; justEvaluated = false; previous = null; operator = null; }
+    if (current === '0') current = d;
+    else if (current === '-0') current = '-' + d;
+    else if (current.replace(/[-.]/g, '').length < 15) current += d;
+    update();
+  }
+
+  function inputDot() {
+    resetError();
+    if (justEvaluated) { current = '0'; justEvaluated = false; previous = null; operator = null; }
+    if (!current.includes('.')) current += '.';
+    update();
+  }
+
+  function calculate(a, b, op) {
+    a = parseFloat(a); b = parseFloat(b);
+    switch (op) {
+      case '+': return a + b;
+      case '−': return a - b;
+      case '×': return a * b;
+      case '÷': return b === 0 ? null : a / b;
+    }
+  }
+
+  function setError(msg) {
+    error = true;
+    current = msg;
+    previous = null;
+    operator = null;
+    update();
+  }
+
+  function chooseOp(op) {
+    resetError();
+    if (operator && !justEvaluated && previous !== null) {
+      const res = calculate(previous, current, operator);
+      if (res === null) return setError('Tidak bisa ÷ 0');
+      previous = clean(res);
+      current = String(previous);
+      // setelah hitung berantai, siap terima angka baru
+      operator = op;
+      justEvaluated = false;
+      resultEl.textContent = format(current);
+      exprEl.textContent = `${format(String(previous))} ${operator}`;
+      current = '0';
+      return;
+    }
+    previous = parseFloat(current);
+    operator = op;
+    justEvaluated = false;
+    exprEl.textContent = `${format(String(previous))} ${operator}`;
+    current = '0';
+  }
+
+  function equals() {
+    if (operator === null || previous === null || error) return;
+    const a = previous, b = current;
+    const res = calculate(a, b, operator);
+    if (res === null) return setError('Tidak bisa ÷ 0');
+    exprEl.textContent = `${format(String(a))} ${operator} ${format(String(parseFloat(b)))} =`;
+    current = String(clean(res));
+    previous = null;
+    operator = null;
+    justEvaluated = true;
+    resultEl.textContent = format(current);
+    const len = resultEl.textContent.length;
+    resultEl.style.fontSize = len > 14 ? '1.4rem' : len > 11 ? '1.8rem' : len > 8 ? '2.2rem' : '2.6rem';
+  }
+
+  function clear() {
+    current = '0'; previous = null; operator = null; justEvaluated = false; error = false;
+    update();
+  }
+
+  function backspace() {
+    if (error) return clear();
+    if (justEvaluated) return;
+    current = current.length > 1 && !(current.length === 2 && current.startsWith('-'))
+      ? current.slice(0, -1) : '0';
+    update();
+  }
+
+  function percent() {
+    if (error) return;
+    current = String(clean(parseFloat(current) / 100));
+    update();
+  }
+
+  function toggleSign() {
+    if (error) return;
+    if (current === '0') return;
+    current = current.startsWith('-') ? current.slice(1) : '-' + current;
+    update();
+  }
+
+  // efek spark pink saat tombol ditekan
+  function burst(btn) {
+    const r = btn.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const isGold = btn.classList.contains('gold');
+    const colors = isGold
+      ? ['#fff3b0', '#f6c945', '#ffd6e7', '#ffffff']
+      : ['#ff8fbb', '#ffb3d1', '#ffd6e7', '#ffffff', '#e8638f'];
+
+    // cincin yang melebar
+    const ring = document.createElement('span');
+    ring.className = 'spark ring';
+    const rs = r.width * 0.7;
+    ring.style.width = rs + 'px';
+    ring.style.height = rs + 'px';
+    ring.style.marginLeft = -rs / 2 + 'px';
+    ring.style.marginTop = -rs / 2 + 'px';
+    ring.style.left = cx + 'px';
+    ring.style.top = cy + 'px';
+    document.body.appendChild(ring);
+    ring.animate(
+      [{ transform: 'scale(0.6)', opacity: 0.9 }, { transform: 'scale(1.8)', opacity: 0 }],
+      { duration: 450, easing: 'ease-out' }
+    ).onfinish = () => ring.remove();
+
+    // percikan bintang & titik
+    const count = 14;
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('span');
+      const star = i % 2 === 0;
+      s.className = 'spark ' + (star ? 'star' : 'dot');
+      const size = star ? 9 + Math.random() * 9 : 4 + Math.random() * 4;
+      s.style.width = size + 'px';
+      s.style.height = size + 'px';
+      s.style.marginLeft = -size / 2 + 'px';
+      s.style.marginTop = -size / 2 + 'px';
+      s.style.left = cx + 'px';
+      s.style.top = cy + 'px';
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      if (!star) s.style.background = color;
+      document.body.appendChild(s);
+
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+      const dist = r.width * (0.6 + Math.random() * 0.8);
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist - 10;
+      const rot = (Math.random() - 0.5) * 360;
+      s.animate(
+        [
+          { transform: 'translate(0,0) scale(0.4) rotate(0deg)', opacity: 1 },
+          { transform: `translate(${dx * 0.7}px, ${dy * 0.7}px) scale(1.1) rotate(${rot / 2}deg)`, opacity: 1, offset: 0.5 },
+          { transform: `translate(${dx}px, ${dy + 18}px) scale(0) rotate(${rot}deg)`, opacity: 0 }
+        ],
+        { duration: 500 + Math.random() * 350, easing: 'cubic-bezier(.2,.7,.3,1)' }
+      ).onfinish = () => s.remove();
+    }
+  }
+
+  // klik tombol
+  document.querySelector('.keys').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    burst(btn);
+    const a = btn.dataset.action;
+    if (a === 'digit') inputDigit(btn.dataset.d);
+    else if (a === 'dot') inputDot();
+    else if (a === 'op') chooseOp(btn.dataset.op);
+    else if (a === 'equals') equals();
+    else if (a === 'clear') clear();
+    else if (a === 'back') backspace();
+    else if (a === 'percent') percent();
+    else if (a === 'sign') toggleSign();
+  });
+
+  // dukungan keyboard
+  const keyMap = { '+': '+', '-': '−', '*': '×', 'x': '×', '/': '÷' };
+  document.addEventListener('keydown', (e) => {
+    let btn = null;
+    if (/^[0-9]$/.test(e.key)) { inputDigit(e.key); btn = document.querySelector(`[data-d="${e.key}"]`); }
+    else if (e.key === '.' || e.key === ',') { inputDot(); btn = document.querySelector('[data-action="dot"]'); }
+    else if (keyMap[e.key]) { e.preventDefault(); chooseOp(keyMap[e.key]); btn = document.querySelector(`[data-op="${keyMap[e.key]}"]`); }
+    else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); equals(); btn = document.querySelector('[data-action="equals"]'); }
+    else if (e.key === 'Backspace') { backspace(); btn = document.querySelector('[data-action="back"]'); }
+    else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') { clear(); btn = document.querySelector('[data-action="clear"]'); }
+    else if (e.key === '%') { percent(); btn = document.querySelector('[data-action="percent"]'); }
+    if (btn) { burst(btn); btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 110); }
+  });
+
+  update();
+</script>
+</body>
+</html>
